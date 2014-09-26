@@ -12,7 +12,6 @@ defmodule PlugJwtRouteTest do
     plug :dispatch
   
     get "/" do
-      IO.inspect(conn)
       conn
       |> PlugJwt.call({"secret", &PlugJwtRouteTest.TestRoutePlug.verify/1})
       |> send_resp(200, "Hello Tester")
