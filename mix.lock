@@ -1,6 +1,6 @@
 %{"cowboy": {:package, "1.0.0"},
   "cowlib": {:package, "1.0.0"},
   "jazz": {:package, "0.2.1"},
-  "joken": {:package, "0.1.0"},
-  "plug": {:package, "0.7.0"},
+  "joken": {:package, "0.5.0"},
+  "plug": {:package, "0.8.0"},
   "ranch": {:package, "1.0.0"}}
