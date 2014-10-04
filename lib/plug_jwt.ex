@@ -1,41 +1,50 @@
 defmodule PlugJwt do
+  @moduledoc """
+    A JWT Plug
 
-  import Plug.Conn, only: [get_req_header: 2, put_resp_header: 3, send_resp: 3, halt: 1]
+    Usage:
+
+    ```
+        plug PlugJwt, secret: "secret", verify: &verify_function/1, claims: %{aud: "spiderman"}
+    ```
+
+    Parameters:
+
+    * secret: The secret used to encode and verify the token
+
+    * verify: A function that takes the payload and verifies it's ok (i.e. make sure username is valid, etc)
+
+    * claims (optional):  A map containing aud, iss, and sub values to verify if needed. Default: %{}
+  """
+  import Plug.Conn
   
   def init(opts) do
     secret = Keyword.fetch!(opts, :secret)
-    verifyFun = Keyword.fetch!(opts, :verify)
-    {secret, verifyFun}
+    verify = Keyword.fetch!(opts, :verify)
+    claims = Keyword.get(opts, :claims, %{})
+    {secret, verify, claims}
   end
 
-  def call(conn, {secret, fun}) do
-    conn
-    |> get_auth_header
-    |> parse_auth(secret, fun)
+  def call(conn, config) do
+    parse_auth(conn, get_req_header(conn, "authorization"), config)
   end
 
-  defp get_auth_header(conn) do
-    auth = get_req_header(conn, "authorization")
-    {conn, auth}
-  end
-
-  defp parse_auth({conn, ["Bearer " <> token]}, secret, fun) do
-    {status, payload_or_error} = Joken.decode(token, secret)
-    case status do
-      :error -> create_401_response(conn, payload_or_error)
-      :ok -> verify_payload(conn, payload_or_error, fun)
+  defp parse_auth(conn, ["Bearer " <> token], {secret, fun, claims}) do
+    case Joken.decode(token, secret, claims) do
+      {:error, error} ->
+        create_401_response(conn, error)
+      {:ok, payload} -> 
+        case fun.(payload) do
+          true ->
+            conn
+          false ->
+            create_401_response(conn, "Unauthorized")
+        end
     end
   end
 
-  defp parse_auth({conn, _}, _, _) do
+  defp parse_auth(conn, _, _) do
     create_401_response(conn, "Unauthorized")
-  end
-
-  defp verify_payload(conn, payload, fun) do
-    case fun.(payload) do
-      false -> send_resp(conn, 401, "Unauthorized") |> halt
-      true -> conn
-    end
   end
 
   defp create_401_response(conn, description) do
