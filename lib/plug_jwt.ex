@@ -36,7 +36,7 @@ defmodule PlugJwt do
       {:ok, payload} -> 
         case fun.(payload) do
           true ->
-            conn
+            conn |> assign(:claims, payload)
           false ->
             create_401_response(conn, "Unauthorized")
         end

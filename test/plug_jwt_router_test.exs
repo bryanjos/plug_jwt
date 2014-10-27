@@ -29,7 +29,7 @@ defmodule PlugJwtRouterTest do
     assert conn.resp_body == "{\"description\":\"Unauthorized\",\"error\":\"Unauthorized\",\"status_code\":401}"
   end
 
-  test "Passes connection when JWT token is valid" do
+  test "Passes connection and assigns claims when JWT token is valid" do
     payload = %{ sub: 1234567890, name: "John Doe", admin: true }
     {:ok, token} = Joken.encode(payload, "secret", :HS256, %{})
 
@@ -37,6 +37,7 @@ defmodule PlugJwtRouterTest do
     conn = conn(:get, "/", [], headers: [{"authorization", auth_header}]) |> call
     assert conn.status == 200
     assert conn.resp_body == "Hello Tester"
+    assert conn.assigns.claims == %{admin: true, name: "John Doe", sub: 1234567890}
   end
 
   test "Send 401 when invalid token sent" do
