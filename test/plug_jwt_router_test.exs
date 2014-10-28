@@ -5,10 +5,8 @@ defmodule PlugJwtRouterTest do
   defmodule TestRouterPlug do
     import Plug.Conn
     use Plug.Router
-
-    def verify(_payload), do: true
     
-    plug PlugJwt, secret: "secret", verify: &PlugJwtRouterTest.TestRouterPlug.verify/1
+    plug PlugJwt, secret: "secret"
     plug :match
     plug :dispatch
   
