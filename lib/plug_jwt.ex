@@ -6,7 +6,7 @@ defmodule PlugJwt do
     Usage:
 
     ```
-        plug PlugJwt, secret: "secret", verify: &verify_function/1, claims: %{aud: "spiderman"}
+        plug PlugJwt, secret: "secret", claims: %{aud: "spiderman"}
     ```
 
     Parameters:
