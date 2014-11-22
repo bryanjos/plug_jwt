@@ -1,7 +1,7 @@
 %{"cowboy": {:hex, :cowboy, "1.0.0"},
   "cowlib": {:hex, :cowlib, "1.0.0"},
   "jazz": {:package, "0.2.1"},
-  "joken": {:hex, :joken, "0.6.0"},
-  "jsx": {:git, "git://github.com/talentdeficit/jsx.git", "4d549dd8a990e282c3d57c5f73213674c05ebf07", [tag: "v2.1.1"]},
-  "plug": {:hex, :plug, "0.8.1"},
+  "joken": {:hex, :joken, "0.6.1"},
+  "jsx": {:hex, :jsx, "2.1.1"},
+  "plug": {:hex, :plug, "0.8.2"},
   "ranch": {:hex, :ranch, "1.0.0"}}

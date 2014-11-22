@@ -3,7 +3,7 @@ defmodule PlugJwt.Mixfile do
 
   def project do
     [app: :plug_jwt,
-     version: "0.3.2",
+     version: "0.3.3",
      elixir: "~> 1.0.0",
      description: description,
      package: package,
@@ -19,7 +19,7 @@ defmodule PlugJwt.Mixfile do
       {:joken, "~> 0.6.0"},
       {:plug, ">= 0.7.0"},
       {:cowboy, "~> 1.0.0"},
-      {:jsx, github: "talentdeficit/jsx", tag: "v2.1.1"}
+      {:jsx, "~> 2.1.1"}
     ]
   end
 
