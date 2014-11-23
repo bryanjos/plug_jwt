@@ -1,7 +1,8 @@
 %{"cowboy": {:hex, :cowboy, "1.0.0"},
   "cowlib": {:hex, :cowlib, "1.0.0"},
   "jazz": {:package, "0.2.1"},
-  "joken": {:hex, :joken, "0.6.2"},
+  "joken": {:hex, :joken, "0.7.0"},
   "jsx": {:hex, :jsx, "2.1.1"},
   "plug": {:hex, :plug, "0.8.2"},
-  "ranch": {:hex, :ranch, "1.0.0"}}
+  "ranch": {:hex, :ranch, "1.0.0"},
+  "timex": {:hex, :timex, "0.13.1"}}
