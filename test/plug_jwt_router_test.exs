@@ -1,12 +1,26 @@
 defmodule PlugJwtRouterTest do
   use ExUnit.Case, async: true
   use Plug.Test
+
+  defmodule TestJsx do
+    alias :jsx, as: JSON
+    @behaviour Joken.Codec
+
+    def encode(map) do
+      JSON.encode(map)
+    end
+
+    def decode(binary) do
+      JSON.decode(binary)
+      |> Enum.map(fn({key, value})-> {String.to_atom(key), value} end)
+    end
+  end
   
   defmodule TestRouterPlug do
     import Plug.Conn
     use Plug.Router
     
-    plug PlugJwt, secret: "secret"
+    plug PlugJwt, secret: "secret", json_module: TestJsx
     plug :match
     plug :dispatch
   
@@ -29,7 +43,7 @@ defmodule PlugJwtRouterTest do
 
   test "Passes connection and assigns claims when JWT token is valid" do
     payload = %{ sub: 1234567890, name: "John Doe", admin: true }
-    {:ok, token} = Joken.encode(payload, "secret", :HS256, %{})
+    {:ok, token} = Joken.Token.encode("secret", TestJsx, payload)
 
     auth_header = "Bearer " <> token
     conn = conn(:get, "/", [], headers: [{"authorization", auth_header}]) |> call
