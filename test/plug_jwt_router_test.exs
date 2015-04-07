@@ -20,7 +20,7 @@ defmodule PlugJwtRouterTest do
     import Plug.Conn
     use Plug.Router
     
-    plug PlugJwt, secret: "secret", json_module: TestJsx
+    plug PlugJwt, secret_key: "secret", json_module: TestJsx
     plug :match
     plug :dispatch
   
@@ -31,12 +31,29 @@ defmodule PlugJwtRouterTest do
     end
   end
 
-  defp call(conn) do
-    TestRouterPlug.call(conn, [])
+  defmodule TestRouterPlugFromConfig do
+    import Plug.Conn
+    use Plug.Router
+    
+    plug PlugJwt
+    plug :match
+    plug :dispatch
+  
+    get "/" do
+      conn
+      |> put_resp_content_type("text/plain")
+      |> send_resp(200, "Hello Tester")
+    end
   end
 
   test "Sends 401 when credentials are missing" do
-    conn = conn(:get, "/") |> call
+    conn = conn(:get, "/") |> TestRouterPlug.call([])
+    assert conn.status == 401
+    assert conn.resp_body == "{\"description\":\"Unauthorized\",\"error\":\"Unauthorized\",\"status_code\":401}"
+  end
+
+  test "Sends 401 when credentials are missing (settings from config)" do
+    conn = conn(:get, "/") |> TestRouterPlugFromConfig.call([])
     assert conn.status == 401
     assert conn.resp_body == "{\"description\":\"Unauthorized\",\"error\":\"Unauthorized\",\"status_code\":401}"
   end
@@ -46,7 +63,18 @@ defmodule PlugJwtRouterTest do
     {:ok, token} = Joken.Token.encode("secret", TestJsx, payload)
 
     auth_header = "Bearer " <> token
-    conn = conn(:get, "/", [], headers: [{"authorization", auth_header}]) |> call
+    conn = conn(:get, "/", [], headers: [{"authorization", auth_header}]) |> TestRouterPlug.call([])
+    assert conn.status == 200
+    assert conn.resp_body == "Hello Tester"
+    assert conn.assigns.claims == %{admin: true, name: "John Doe", sub: 1234567890}
+  end
+
+  test "Passes connection and assigns claims when JWT token is valid (settings from config)" do
+    payload = %{ sub: 1234567890, name: "John Doe", admin: true }
+    {:ok, token} = Joken.Token.encode("test", TestJsx, payload)
+
+    auth_header = "Bearer " <> token
+    conn = conn(:get, "/", [], headers: [{"authorization", auth_header}]) |> TestRouterPlugFromConfig.call([])
     assert conn.status == 200
     assert conn.resp_body == "Hello Tester"
     assert conn.assigns.claims == %{admin: true, name: "John Doe", sub: 1234567890}
@@ -54,7 +82,14 @@ defmodule PlugJwtRouterTest do
 
   test "Send 401 when invalid token sent" do
     incorrect_credentials = "Bearer " <> "Not a token"
-    conn = conn(:get, "/", [], headers: [{"authorization", incorrect_credentials}]) |> call
+    conn = conn(:get, "/", [], headers: [{"authorization", incorrect_credentials}]) |> TestRouterPlug.call([])
+    assert conn.status == 401
+    assert conn.resp_body == "{\"description\":\"Invalid JSON Web Token\",\"error\":\"Unauthorized\",\"status_code\":401}"
+  end
+
+  test "Send 401 when invalid token sent (settings from config)" do
+    incorrect_credentials = "Bearer " <> "Not a token"
+    conn = conn(:get, "/", [], headers: [{"authorization", incorrect_credentials}]) |> TestRouterPlugFromConfig.call([])
     assert conn.status == 401
     assert conn.resp_body == "{\"description\":\"Invalid JSON Web Token\",\"error\":\"Unauthorized\",\"status_code\":401}"
   end
