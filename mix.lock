@@ -1,5 +1,7 @@
 %{"cowboy": {:hex, :cowboy, "1.0.0"},
   "cowlib": {:hex, :cowlib, "1.0.1"},
+  "earmark": {:hex, :earmark, "0.1.17"},
+  "ex_doc": {:hex, :ex_doc, "0.7.3"},
   "jazz": {:package, "0.2.1"},
   "joken": {:hex, :joken, "0.14.0"},
   "jsx": {:hex, :jsx, "2.1.1"},
