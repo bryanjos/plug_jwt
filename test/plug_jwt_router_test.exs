@@ -4,7 +4,15 @@ defmodule PlugJwtRouterTest do
 
   defmodule TestJsx do
     alias :jsx, as: JSON
-    @behaviour Joken.Codec
+    @behaviour Joken.Config
+
+    def secret_key() do
+      "secret"
+    end
+
+    def algorithm() do
+      :HS256
+    end
 
     def encode(map) do
       JSON.encode(map)
@@ -14,13 +22,25 @@ defmodule PlugJwtRouterTest do
       JSON.decode(binary)
       |> Enum.map(fn({key, value})-> {String.to_atom(key), value} end)
     end
+
+    def claim(:sub, _) do
+      1234567890
+    end
+
+    def claim(_, _) do
+      nil
+    end
+
+    def validate_claim(_, _) do
+      :ok
+    end
   end
   
   defmodule TestRouterPlug do
     import Plug.Conn
     use Plug.Router
     
-    plug PlugJwt, secret_key: "secret", json_module: TestJsx
+    plug PlugJwt, config_module: TestJsx
     plug :match
     plug :dispatch
   
@@ -59,8 +79,8 @@ defmodule PlugJwtRouterTest do
   end
 
   test "Passes connection and assigns claims when JWT token is valid" do
-    payload = %{ sub: 1234567890, name: "John Doe", admin: true }
-    {:ok, token} = Joken.Token.encode("secret", TestJsx, payload)
+    payload = %{ name: "John Doe", admin: true }
+    {:ok, token} = Joken.Token.encode(TestJsx, payload)
 
     auth_header = "Bearer " <> token
     conn = conn(:get, "/", []) 
@@ -74,7 +94,7 @@ defmodule PlugJwtRouterTest do
 
   test "Passes connection and assigns claims when JWT token is valid (settings from config)" do
     payload = %{ sub: 1234567890, name: "John Doe", admin: true }
-    {:ok, token} = Joken.Token.encode("test", TestJsx, payload)
+    {:ok, token} = Joken.Token.encode(TestJsx, payload)
 
     auth_header = "Bearer " <> token
     conn = conn(:get, "/", []) 

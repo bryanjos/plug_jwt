@@ -1,3 +1,11 @@
+#v0.7.0
+  * Enchancements
+    * Updated to Joken 0.14.0
+
+  * Breaking
+    * The only config option is `config_module` which takes a module that implements `Joken.Config`
+
+
 #v0.6.0
 
 * Enhancements
