@@ -51,6 +51,21 @@ defmodule PlugJwtRouterTest do
     end
   end
 
+  defmodule TestRouterPlugClaims do
+    import Plug.Conn
+    use Plug.Router
+    
+    plug PlugJwt, config_module: TestJsx, claims: [admin: true]
+    plug :match
+    plug :dispatch
+  
+    get "/" do
+      conn
+      |> put_resp_content_type("text/plain")
+      |> send_resp(200, "Hello Tester")
+    end
+  end
+
   defmodule TestRouterPlugFromConfig do
     import Plug.Conn
     use Plug.Router
@@ -125,4 +140,33 @@ defmodule PlugJwtRouterTest do
     assert conn.status == 401
     assert conn.resp_body == "{\"description\":\"Invalid JSON Web Token\",\"error\":\"Unauthorized\",\"status_code\":401}"
   end
+
+  test "Send 401 when incorrect claims sent" do
+    payload = %{ sub: 1234567890, name: "John Doe", admin: false }
+    {:ok, token} = Joken.Token.encode(TestJsx, payload)
+
+    auth_header = "Bearer " <> token
+    conn = conn(:get, "/", []) 
+    |> put_req_header("authorization", auth_header)
+    |> TestRouterPlugClaims.call([])
+
+    assert conn.status == 401
+    assert conn.resp_body == "{\"description\":\"Unauthorized\",\"error\":\"Unauthorized\",\"status_code\":401}"
+  end
+
+  test "Passes connection and assigns claims when correct claims sent" do
+    payload = %{ sub: 1234567890, name: "John Doe", admin: true }
+    {:ok, token} = Joken.Token.encode(TestJsx, payload)
+
+    auth_header = "Bearer " <> token
+    conn = conn(:get, "/", []) 
+    |> put_req_header("authorization", auth_header)
+    |> TestRouterPlugClaims.call([])
+
+    assert conn.status == 200
+    assert conn.resp_body == "Hello Tester"
+    assert conn.assigns.claims == %{admin: true, name: "John Doe", sub: 1234567890}
+  end
+
+
 end

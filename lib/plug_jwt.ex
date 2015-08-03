@@ -22,25 +22,42 @@ defmodule PlugJwt do
   
   def init(opts) do
     config_module = Keyword.get(opts, :config_module, Application.get_env(:joken, :config_module))
-
-    {config_module}
+    claims = Keyword.get(opts, :claims, [])
+    {config_module, claims}
   end
 
   def call(conn, config) do
     parse_auth(conn, get_req_header(conn, "authorization"), config)
   end
 
-  defp parse_auth(conn, ["Bearer " <> token], {config_module}) do
+  defp parse_auth(conn, ["Bearer " <> token], {config_module, claims}) do
     case Joken.Token.decode(config_module, token) do
       {:error, error} ->
         create_401_response(conn, error, config_module)
       {:ok, payload} ->
-        conn |> assign(:claims, payload)      
+        test_claims(payload, claims, conn, config_module)      
     end
   end
 
-  defp parse_auth(conn, _, {config_module}) do
+  defp parse_auth(conn, _, {config_module, _claims}) do
     create_401_response(conn, "Unauthorized", config_module)
+  end
+
+  defp test_claims(payload, claims, conn, config_module) do
+    if Enum.all?(claims, fn({k,v})-> validate_claim(payload, k, v) == :ok end) do
+      conn |> assign(:claims, payload)
+    else
+      create_401_response(conn, "Unauthorized", config_module)
+    end
+  end
+
+  defp validate_claim(payload, claim_key, claim_value) do
+    cond do
+      Dict.get(payload, claim_key, nil) == claim_value ->
+        :ok
+      true ->
+        :error
+    end
   end
 
   defp create_401_response(conn, description, config_module) do

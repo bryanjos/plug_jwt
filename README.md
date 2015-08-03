@@ -11,6 +11,9 @@ Usage:
     
     #or the module that implements `Joken.Config` can be set explicitly
     plug PlugJwt, config_module: My.Joken.Config
+
+    #You may also add a list of expected claims to verify
+    plug PlugJwt, config_module: My.Joken.Config, claims: [aud: "spiderman", admin: true]
 ```
 
 Parameters:
