@@ -31,7 +31,7 @@ defmodule PlugJwtRouterTest do
       nil
     end
 
-    def validate_claim(_, _) do
+    def validate_claim(_, _, _) do
       :ok
     end
   end

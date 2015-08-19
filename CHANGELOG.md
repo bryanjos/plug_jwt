@@ -1,3 +1,8 @@
+#v0.7.1
+  * Enchancements
+    * Updated to Joken 0.15.0
+    * Update to Plug 1.0
+
 #v0.7.0
   * Enchancements
     * Updated to Joken 0.14.0
